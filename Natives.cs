@@ -26,16 +26,13 @@ namespace JC3FOVFixer
         #region Imports
 
         [DllImport("kernel32.dll")]
-        public static extern IntPtr OpenProcess(uint dwDesiredAccess,
-            [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
+        public static extern IntPtr OpenProcess(uint dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer,
-            int dwSize, out int lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out int lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer,
-            uint nSize, out int lpNumberOfBytesWritten);
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out int lpNumberOfBytesWritten);
 
         #endregion
 
@@ -44,16 +41,14 @@ namespace JC3FOVFixer
         public static byte[] ReadBytes(IntPtr handle, IntPtr address, uint numBytes)
         {
             var buf = new byte[numBytes];
-            var numBytesRead = 0;
-            ReadProcessMemory(handle, address, buf, buf.Length, out numBytesRead);
+            ReadProcessMemory(handle, address, buf, buf.Length, out _);
 
             return buf;
         }
 
         public static void WriteBytes(IntPtr handle, IntPtr address, byte[] bytes)
         {
-            var numBytesWritten = 0;
-            WriteProcessMemory(handle, address, bytes, (uint) bytes.Length, out numBytesWritten);
+            WriteProcessMemory(handle, address, bytes, (uint) bytes.Length, out _);
         }
 
         public static IntPtr ReadIntPtr(IntPtr handle, IntPtr address)

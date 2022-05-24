@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 namespace JC3FOVFixer.Utilites
 {
-    public class RelayCMD : ICommand
+    public class RelayCommand : ICommand
     {
         #region Fields
 
@@ -15,17 +15,13 @@ namespace JC3FOVFixer.Utilites
 
         #region Constructors
 
-        public RelayCommand(Action<object> execute)
-        : this(execute, null)
+        public RelayCommand(Action<object> execute) : this(execute, null)
         {
         }
 
         public RelayCommand(Action<object> execute, Predicate<object> canExecute)
         {
-            if (execute == null)
-                throw new ArgumentNullException("execute");
-
-            _execute = execute;
+            _execute = execute ?? throw new ArgumentNullException("execute");
             _canExecute = canExecute;
         }
         #endregion // Constructors
@@ -35,7 +31,7 @@ namespace JC3FOVFixer.Utilites
         [DebuggerStepThrough]
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null ? true : _canExecute(parameter);
+            return _canExecute == null || _canExecute(parameter);
         }
 
         public event EventHandler CanExecuteChanged

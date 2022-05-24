@@ -14,8 +14,10 @@ namespace JC3FOVFixer
         private const int minFOV = 1;
         private const int maxFOV = 90;
 
+        private int savedFov = 1;
+
         private static MainWindow Instance;
-        private Model model;
+        private readonly Model model;
 
         public MainWindow()
         {
@@ -24,10 +26,13 @@ namespace JC3FOVFixer
             DataContext = new Model();
             model = DataContext as Model;
 
-            SetFov.Click += SetFov_Click;
+            BtnSetFov.Click += SetFov_Click;
+            BtnLoadSaved.Click += LoadSaved_Click;
 
             FOVSlider.Minimum = minFOV;
             FOVSlider.Maximum = maxFOV;
+
+            savedFov = Properties.Settings.Default.SavedFov;
 
             Instance = this;
             _hookID = SetHook(_onHookEvent);
@@ -40,18 +45,34 @@ namespace JC3FOVFixer
 
         private void SetFov_Click(object sender, RoutedEventArgs e)
         {
-            float FOVValue;
-            if (float.TryParse(FOVText.Text, out FOVValue))
+
+            SetFov();
+        }
+
+        private void LoadSaved_Click(object sender, RoutedEventArgs e)
+        {
+            model.Fov = savedFov;
+            SetFov();
+        }
+
+        private void SetFov()
+        {
+            if (float.TryParse(FOVText.Text, out float FOVValue))
             {
                 //var model = DataContext as Model;
                 if (FOVValue < minFOV || FOVValue > 90)
                 {
-                    MessageBox.Show("FOV should be between 1 and 90", "Error", MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    MessageBox.Show("FOV should be between 1 and 90", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {
-                    if (model != null) model.Fov = FOVValue;
+                    Properties.Settings.Default.SavedFov = savedFov = (int)Math.Round(FOVValue);
+                    Properties.Settings.Default.Save();
+
+                    if (model != null)
+                    {
+                        model.Fov = FOVValue;
+                    }
                 }
             }
             else
@@ -59,14 +80,6 @@ namespace JC3FOVFixer
                 MessageBox.Show("Invalid FOV supplied", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
-
-
-
-
-       
-
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
@@ -85,20 +98,16 @@ namespace JC3FOVFixer
         private static extern IntPtr GetModuleHandle(string lpModuleName);
 
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
-        private static LowLevelKeyboardProc _onHookEvent = HookCallback;
+        private static readonly LowLevelKeyboardProc _onHookEvent = HookCallback;
 
         private static IntPtr _hookID = IntPtr.Zero;
-
-
         private const int WH_KEYBOARD_LL = 13;
 
         enum WM
         {
             KEYDOWN = 0x0100,
             KEYUP = 0x101
-
         }
-
 
         private static IntPtr SetHook(LowLevelKeyboardProc proc)
         {
@@ -109,7 +118,6 @@ namespace JC3FOVFixer
                 return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
             }
         }
-
 
         private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -154,6 +162,7 @@ namespace JC3FOVFixer
                     }
                     break;
             }
+
             FOVText.Text = model.Fov.ToString("0");
         }
     }
